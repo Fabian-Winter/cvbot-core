@@ -1,0 +1,101 @@
+# Verifies the test suite and cuts a release tag for the consuming repositories.
+#
+# Trigger   push to main.
+# Result    on a green suite, the patch level of the latest v* tag is bumped and
+#           the new tag is pushed. cvbot-embedder and cvbot-retriever pin that
+#           exact tag in their requirements.txt.
+#
+# A commit that is already tagged is skipped, so re-runs never create duplicates.
+name: Test and release
+
+on:
+  push:
+    branches: [main]
+
+# Tags are derived from the latest existing one, so runs must not overlap.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  python-tests:
+    name: Run tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests with coverage
+        run: |
+          # The exit code is kept so the summary is always written, but a failing
+          # test suite still turns the job red instead of passing silently.
+          set +e
+          output=$(pytest --cov=cvbot_core --cov-report=term-missing 2>&1)
+          exit_code=$?
+          set -e
+          {
+            echo '### Pytest Results'
+            echo
+            echo '```'
+            echo "$output"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit $exit_code
+
+  tag:
+    name: Create release tag
+    needs: python-tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Generate App Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ github.ref_name }}
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Bump patch level and push the tag
+        run: |
+          set -euo pipefail
+
+          existing=$(git tag --points-at HEAD --list 'v*' | head -n1)
+          if [ -n "$existing" ]; then
+            echo "already released as $existing" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          latest=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)
+          if [ -z "$latest" ]; then
+            next="v0.1.0"
+          else
+            version=${latest#v}
+            major=${version%%.*}
+            rest=${version#*.}
+            minor=${rest%%.*}
+            patch=${rest#*.}
+            next="v${major}.${minor}.$((patch + 1))"
+          fi
+
+          git config user.name "repo-push-bot"
+          git config user.email "repo-push-bot@users.noreply.github.com"
+          git tag -a "$next" -m "Release $next"
+          git push origin "$next"
+
+          echo "released $next" >> "$GITHUB_STEP_SUMMARY"

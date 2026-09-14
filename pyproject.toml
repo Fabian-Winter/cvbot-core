@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cvbot-core"
+description = "Shared building blocks of the cvbot RAG system."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+# Releases are cut by tagging, so the tag is the source of truth for the
+# version and this placeholder is never bumped.
+version = "0.0.0"
+dependencies = [
+    "langchain-core",
+    "langchain-aws",
+    "langchain-chroma",
+    "chromadb==1.5.9",
+    "boto3",
+    "tiktoken",
+]
+
+[tool.setuptools.packages.find]
+include = ["cvbot_core*"]
