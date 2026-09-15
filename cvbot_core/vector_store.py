@@ -13,6 +13,8 @@ EMBEDDING_MODEL_METADATA_KEY = "embedding_model_id"
 
 # Single source of truth so cvbot-embedder and cvbot-retriever cannot drift apart.
 DEFAULT_COLLECTION_NAME = "cvbot_documents"
+DEFAULT_CHROMA_HOST = "localhost"
+DEFAULT_CHROMA_PORT = 8000
 
 
 def create_chroma_client(host: str, port: int) -> chromadb.ClientAPI:

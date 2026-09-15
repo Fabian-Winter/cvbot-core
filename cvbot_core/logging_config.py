@@ -7,6 +7,7 @@ import logging
 LOG_FORMAT = "%(asctime)s %(levelname)-8s %(name)s: %(message)s"
 
 VALID_LOG_LEVELS = frozenset({"DEBUG", "INFO", "WARNING", "ERROR"})
+DEFAULT_LOG_LEVEL = "INFO"
 
 
 def configure_logging(level: str) -> None:
