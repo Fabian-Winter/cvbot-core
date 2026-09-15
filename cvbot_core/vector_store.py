@@ -11,6 +11,9 @@ LOGGER = logging.getLogger(__name__)
 # Collection metadata key cvbot-embedder writes and cvbot-retriever reads back.
 EMBEDDING_MODEL_METADATA_KEY = "embedding_model_id"
 
+# Single source of truth so cvbot-embedder and cvbot-retriever cannot drift apart.
+DEFAULT_COLLECTION_NAME = "cvbot_documents"
+
 
 def create_chroma_client(host: str, port: int) -> chromadb.ClientAPI:
     """Creates an HTTP client for the ChromaDB instance.
