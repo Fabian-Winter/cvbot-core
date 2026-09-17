@@ -11,6 +11,9 @@ LOGGER = logging.getLogger(__name__)
 # Collection metadata key cvbot-embedder writes and cvbot-retriever reads back.
 EMBEDDING_MODEL_METADATA_KEY = "embedding_model_id"
 
+# Cosine matches embedding models optimized for cosine similarity (e.g. Titan).
+DEFAULT_HNSW_SPACE = "cosine"
+
 # Single source of truth so cvbot-embedder and cvbot-retriever cannot drift apart.
 DEFAULT_COLLECTION_NAME = "cvbot_documents"
 DEFAULT_CHROMA_HOST = "localhost"
