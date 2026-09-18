@@ -63,7 +63,7 @@ def test_encode_schema_is_deterministic() -> None:
 
 
 def test_encode_and_decode_schema_round_trip() -> None:
-    schema = {"status": ["aktuell", "historisch"], "jahre": ["2011", "2012"]}
+    schema = {"status": ["aktuell", "historisch"], "years": ["2011", "2012"]}
 
     assert decode_schema(encode_schema(schema)) == schema
 
