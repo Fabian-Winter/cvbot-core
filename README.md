@@ -6,8 +6,13 @@ cvbot-retriever.
 The package holds everything both services need identically, so ingestion and
 retrieval cannot drift apart: the Bedrock embedding factory, the ChromaDB
 connection, the `cl100k_base` token counting, the environment parsers and
-validators behind each service `Settings`, the log configuration and the
-structural interfaces of the backends.
+validators behind each service `Settings`, the log configuration, the
+structural interfaces of the backends and the section metadata vocabulary.
+
+`metadata.py` defines how a `> key: value` field is normalized and how the
+observed schema is encoded. Both sides must agree on it: cvbot-embedder writes
+the schema onto the collection, cvbot-retriever reads it back, injects it into
+its prompt and matches the extracted filters against chunk metadata.
 
 ## Usage
 

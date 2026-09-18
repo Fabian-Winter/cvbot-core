@@ -56,3 +56,23 @@ def test_read_embedding_model_id_raises_when_key_is_absent() -> None:
 
     with pytest.raises(RuntimeError, match="embedding_model_id"):
         vector_store.read_embedding_model_id(client, "jobs")
+
+
+def test_read_metadata_schema_returns_the_stored_schema() -> None:
+    client = FakeClient(FakeCollection({"metadata_schema": '{"status":["aktuell"]}'}))
+
+    assert vector_store.read_metadata_schema(client, "jobs") == {
+        "status": ["aktuell"]
+    }
+
+
+def test_read_metadata_schema_returns_empty_when_key_is_absent() -> None:
+    client = FakeClient(FakeCollection({"embedding_model_id": "titan"}))
+
+    assert vector_store.read_metadata_schema(client, "jobs") == {}
+
+
+def test_read_metadata_schema_returns_empty_without_collection_metadata() -> None:
+    client = FakeClient(FakeCollection(None))
+
+    assert vector_store.read_metadata_schema(client, "jobs") == {}
