@@ -21,6 +21,30 @@ RESERVED_METADATA_KEYS = frozenset(
     {"source", "filename", "chunk_index", "h1", "h2", "h3"}
 )
 
+# Period fields written by the documents and the coarse recency marker.
+# Both sides read and write them, so their spelling lives here.
+PERIOD_START_KEY = "from"
+PERIOD_END_KEY = "to"
+STATUS_KEY = "status"
+
+# Values of ``to`` that mean "still running" rather than a concrete end date.
+OPEN_PERIOD_MARKERS = frozenset(
+    {
+        "",
+        "-",
+        "laufend",
+        "heute",
+        "jetzt",
+        "aktuell",
+        "today",
+        "now",
+        "current",
+        "present",
+    }
+)
+
+_PERIOD_YEAR = re.compile(r"\b(\d{4})\b")
+
 # Chroma collection metadata has to stay small, and the schema is injected into
 # a prompt, so both the field count and the value lists are capped.
 MAX_SCHEMA_FIELDS = 30
@@ -67,6 +91,25 @@ def normalize_value(raw: str) -> str:
     """
     cleaned = _CONTROL_CHARS.sub(" ", raw)
     return _WHITESPACE.sub(" ", cleaned).strip().lower()[:MAX_VALUE_LENGTH]
+
+
+def parse_period_year(raw: str | None) -> int | None:
+    """Reads the year out of a period bound.
+
+    Accepts ``2011``, ``2011-10``, ``2011-10-01`` and prose like
+    ``Oktober 2011``. Both the embedder that derives the year lists and the
+    retriever that reads them back at query time use the same rule.
+
+    Args:
+        raw: The raw field value, if present.
+
+    Returns:
+        The year, or ``None`` if the value carries none.
+    """
+    if not raw:
+        return None
+    match = _PERIOD_YEAR.search(raw)
+    return int(match.group(1)) if match else None
 
 
 def split_values(raw: str) -> list[str]:

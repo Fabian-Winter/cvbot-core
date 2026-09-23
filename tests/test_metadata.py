@@ -8,8 +8,28 @@ from cvbot_core.metadata import (
     encode_schema,
     normalize_key,
     normalize_value,
+    parse_period_year,
     split_values,
 )
+
+
+def test_parse_period_year_reads_a_bare_year() -> None:
+    assert parse_period_year("2011") == 2011
+
+
+def test_parse_period_year_reads_a_date_prefix() -> None:
+    assert parse_period_year("2011-10") == 2011
+    assert parse_period_year("2011-10-01") == 2011
+
+
+def test_parse_period_year_reads_a_year_out_of_prose() -> None:
+    assert parse_period_year("Oktober 2011") == 2011
+
+
+def test_parse_period_year_returns_none_without_a_year() -> None:
+    assert parse_period_year(None) is None
+    assert parse_period_year("") is None
+    assert parse_period_year("laufend") is None
 
 
 def test_normalize_key_folds_umlauts_and_separators() -> None:

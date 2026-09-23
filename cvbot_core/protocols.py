@@ -60,10 +60,10 @@ class VectorStoreWriter(Protocol):
 class VectorStoreReader(Protocol):
     """Source store of the retrieval pipeline."""
 
-    def similarity_search(
+    def similarity_search_with_score(
         self, query: str, k: int = 4, **kwargs: Any
-    ) -> list[Document]:
-        """Looks up the chunks that match a query.
+    ) -> list[tuple[Document, float]]:
+        """Looks up the chunks that match a query together with their distance.
 
         Args:
             query: The text to match against.
@@ -71,6 +71,7 @@ class VectorStoreReader(Protocol):
             **kwargs: Store specific options.
 
         Returns:
-            The matching chunks, ordered by decreasing similarity.
+            The matching chunks, ordered by increasing distance; the score is
+            the vector distance, so a lower value means a closer match.
         """
         ...

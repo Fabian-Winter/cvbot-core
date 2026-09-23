@@ -8,6 +8,7 @@ from cvbot_core.validation import (
     require_at_least,
     require_below,
     require_choice,
+    require_float_in_range,
     require_http_origins,
     require_in_range,
     require_non_empty,
@@ -68,6 +69,20 @@ def test_require_choice_rejects_an_unknown_value() -> None:
     require_choice("INFO", {"INFO", "DEBUG"}, "log_level")
     with pytest.raises(ValueError, match="unknown log_level: TRACE"):
         require_choice("TRACE", {"INFO", "DEBUG"}, "log_level")
+
+
+def test_require_float_in_range_accepts_the_closed_interval() -> None:
+    require_float_in_range(0.0, 0.0, 1.0, "recency_weight")
+    require_float_in_range(0.5, 0.0, 1.0, "recency_weight")
+    require_float_in_range(1.0, 0.0, 1.0, "recency_weight")
+
+
+@pytest.mark.parametrize("value", [-0.1, 1.1])
+def test_require_float_in_range_rejects_values_outside_the_interval(
+    value: float,
+) -> None:
+    with pytest.raises(ValueError, match=r"recency_weight outside 0.0-1.0"):
+        require_float_in_range(value, 0.0, 1.0, "recency_weight")
 
 
 def test_require_http_origins_accepts_bare_origins() -> None:

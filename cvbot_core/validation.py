@@ -111,6 +111,22 @@ def require_in_range(value: int, limit: int, name: str, limit_name: str) -> None
         )
 
 
+def require_float_in_range(value: float, low: float, high: float, name: str) -> None:
+    """Rejects a number outside the closed interval ``low`` to ``high``.
+
+    Args:
+        value: The configured value.
+        low: The smallest accepted value.
+        high: The largest accepted value.
+        name: Field name used in the error message.
+
+    Raises:
+        ValueError: If the value is outside the interval.
+    """
+    if not low <= value <= high:
+        raise ValueError(f"{name} outside {low}-{high}: {value}")
+
+
 def require_choice(value: str, allowed: Container[str], name: str) -> None:
     """Rejects a value that is not part of an allow list.
 

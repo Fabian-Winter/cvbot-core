@@ -63,6 +63,29 @@ def read_int(env: Mapping[str, str], key: str, default: int) -> int:
         raise ValueError(f"{key} is not an integer: {raw!r}") from exc
 
 
+def read_float(env: Mapping[str, str], key: str, default: float) -> float:
+    """Reads a float from the environment.
+
+    Args:
+        env: Mapping of variable names to values.
+        key: Name of the variable.
+        default: Value used if the variable is not set.
+
+    Returns:
+        The parsed value or ``default``.
+
+    Raises:
+        ValueError: If the value is not a number.
+    """
+    raw = env.get(key)
+    if raw is None or raw == "":
+        return default
+    try:
+        return float(raw)
+    except ValueError as exc:
+        raise ValueError(f"{key} is not a number: {raw!r}") from exc
+
+
 def read_bool(env: Mapping[str, str], key: str, default: bool) -> bool:
     """Reads a boolean from the environment.
 

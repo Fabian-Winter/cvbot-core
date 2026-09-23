@@ -6,7 +6,14 @@ from pathlib import Path
 
 import pytest
 
-from cvbot_core.env import read_bool, read_csv, read_int, read_path, read_str
+from cvbot_core.env import (
+    read_bool,
+    read_csv,
+    read_float,
+    read_int,
+    read_path,
+    read_str,
+)
 
 
 def test_read_str_falls_back_to_the_default() -> None:
@@ -28,6 +35,18 @@ def test_read_int_parses_and_falls_back() -> None:
 def test_read_int_rejects_a_non_numeric_value() -> None:
     with pytest.raises(ValueError, match="PORT is not an integer"):
         read_int({"PORT": "many"}, "PORT", 8000)
+
+
+def test_read_float_parses_and_falls_back() -> None:
+    assert read_float({}, "WEIGHT", 0.2) == 0.2
+    assert read_float({"WEIGHT": ""}, "WEIGHT", 0.2) == 0.2
+    assert read_float({"WEIGHT": "0.75"}, "WEIGHT", 0.2) == 0.75
+    assert read_float({"WEIGHT": "1"}, "WEIGHT", 0.2) == 1.0
+
+
+def test_read_float_rejects_a_non_numeric_value() -> None:
+    with pytest.raises(ValueError, match="WEIGHT is not a number"):
+        read_float({"WEIGHT": "hoch"}, "WEIGHT", 0.2)
 
 
 @pytest.mark.parametrize("raw", ["1", "true", "TRUE", " yes ", "on"])

@@ -25,9 +25,9 @@ class _Writer:
 class _Reader:
     """Store double that only reads."""
 
-    def similarity_search(
+    def similarity_search_with_score(
         self, query: str, k: int = 4, **kwargs: Any
-    ) -> list[Document]:
+    ) -> list[tuple[Document, float]]:
         """Returns no chunks."""
         return []
 
