@@ -12,7 +12,10 @@ structural interfaces of the backends and the section metadata vocabulary.
 `metadata.py` defines how a `> key: value` field is normalized and how the
 observed schema is encoded. Both sides must agree on it: cvbot-embedder writes
 the schema onto the collection, cvbot-retriever reads it back, injects it into
-its prompt and matches the extracted filters against chunk metadata.
+its prompt and matches the extracted filters against chunk metadata. It also
+holds the single period rule (`period_end_year`) that cvbot-embedder derives the
+published `years` lists from and cvbot-retriever rates recency against, so the
+two sides can never disagree on when a period ends.
 
 ## Usage
 

@@ -19,6 +19,7 @@ from .metadata import (
     normalize_key,
     normalize_value,
     parse_period_year,
+    period_end_year,
     split_values,
 )
 from .overrides import apply_overrides
@@ -63,6 +64,7 @@ __all__ = [
     "normalize_key",
     "normalize_value",
     "parse_period_year",
+    "period_end_year",
     "read_bool",
     "read_csv",
     "read_float",

@@ -12,6 +12,7 @@ import json
 import logging
 import re
 from collections.abc import Mapping, Sequence
+from typing import Any
 
 LOGGER = logging.getLogger(__name__)
 
@@ -110,6 +111,49 @@ def parse_period_year(raw: str | None) -> int | None:
         return None
     match = _PERIOD_YEAR.search(raw)
     return int(match.group(1)) if match else None
+
+
+def period_end_year(
+    metadata: Mapping[str, Any], now_year: int
+) -> int | None:
+    """Determines the last year a chunk speaks about, or ``None``.
+
+    Single source of truth for the period semantics of ``from``/``to``/
+    ``status``: cvbot-embedder derives the published ``years`` lists from it,
+    cvbot-retriever rates recency with it, so both sides always agree on when
+    a period ends. An open-ended ``to`` (``now``, ``laufend``, absent) reaches
+    into the present, a concrete one ends at its year, and an open ``status``
+    marks the undated sections as up to date.
+
+    Args:
+        metadata: The metadata of the chunk.
+        now_year: The current year, passed in so callers stay deterministic.
+
+    Returns:
+        The end year, or ``None`` if the metadata carries no usable signal.
+    """
+    end_raw = metadata.get(PERIOD_END_KEY)
+    end_text = end_raw if isinstance(end_raw, str) else None
+    if end_text is not None and normalize_value(end_text) in OPEN_PERIOD_MARKERS:
+        return now_year
+    parsed = parse_period_year(end_text)
+    if parsed is not None:
+        return parsed
+
+    start_raw = metadata.get(PERIOD_START_KEY)
+    start = parse_period_year(start_raw if isinstance(start_raw, str) else None)
+    if end_text is None and start is not None:
+        # Absent end reads as "still running", exactly like the year list the
+        # embedder derives from the same fields.
+        return now_year
+    if start is not None:
+        # Unparsable end: conservative, a single-year period.
+        return start
+
+    status = metadata.get(STATUS_KEY)
+    if isinstance(status, str) and normalize_value(status) in OPEN_PERIOD_MARKERS:
+        return now_year
+    return None
 
 
 def split_values(raw: str) -> list[str]:
