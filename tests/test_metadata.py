@@ -34,20 +34,20 @@ def test_parse_period_year_returns_none_without_a_year() -> None:
 
 
 def test_period_end_year_reads_a_concrete_end() -> None:
-    assert period_end_year({"to": "2014-10"}, 2026) == 2014
+    assert period_end_year({"enddate": "2014-10"}, 2026) == 2014
 
 
 def test_period_end_year_treats_an_open_end_as_the_present() -> None:
-    assert period_end_year({"to": "laufend"}, 2026) == 2026
-    assert period_end_year({"to": "now"}, 2026) == 2026
+    assert period_end_year({"enddate": "laufend"}, 2026) == 2026
+    assert period_end_year({"enddate": "now"}, 2026) == 2026
 
 
 def test_period_end_year_treats_a_missing_end_as_still_running() -> None:
-    assert period_end_year({"from": "2011"}, 2026) == 2026
+    assert period_end_year({"startdate": "2011"}, 2026) == 2026
 
 
 def test_period_end_year_falls_back_to_the_start_for_an_unparsable_end() -> None:
-    assert period_end_year({"from": "2011", "to": "irgendwann"}, 2026) == 2011
+    assert period_end_year({"startdate": "2011", "enddate": "irgendwann"}, 2026) == 2011
 
 
 def test_period_end_year_marks_an_open_status_as_the_present() -> None:

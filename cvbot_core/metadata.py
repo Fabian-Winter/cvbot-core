@@ -24,11 +24,11 @@ RESERVED_METADATA_KEYS = frozenset(
 
 # Period fields written by the documents and the coarse recency marker.
 # Both sides read and write them, so their spelling lives here.
-PERIOD_START_KEY = "from"
-PERIOD_END_KEY = "to"
+PERIOD_START_KEY = "startdate"
+PERIOD_END_KEY = "enddate"
 STATUS_KEY = "status"
 
-# Values of ``to`` that mean "still running" rather than a concrete end date.
+# Values of ``enddate`` that mean "still running" rather than a concrete end date.
 OPEN_PERIOD_MARKERS = frozenset(
     {
         "",
@@ -118,10 +118,10 @@ def period_end_year(
 ) -> int | None:
     """Determines the last year a chunk speaks about, or ``None``.
 
-    Single source of truth for the period semantics of ``from``/``to``/
+    Single source of truth for the period semantics of ``startdate``/``enddate``/
     ``status``: cvbot-embedder derives the published ``years`` lists from it,
     cvbot-retriever rates recency with it, so both sides always agree on when
-    a period ends. An open-ended ``to`` (``now``, ``laufend``, absent) reaches
+    a period ends. An open-ended ``enddate`` (``now``, ``laufend``, absent) reaches
     into the present, a concrete one ends at its year, and an open ``status``
     marks the undated sections as up to date.
 
