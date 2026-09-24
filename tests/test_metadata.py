@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 from cvbot_core.metadata import (
     MAX_VALUE_LENGTH,
+    current_year,
     decode_schema,
     encode_schema,
     normalize_key,
@@ -48,10 +51,6 @@ def test_period_end_year_treats_a_missing_end_as_still_running() -> None:
 
 def test_period_end_year_falls_back_to_the_start_for_an_unparsable_end() -> None:
     assert period_end_year({"startdate": "2011", "enddate": "irgendwann"}, 2026) == 2011
-
-
-def test_period_end_year_marks_an_open_status_as_the_present() -> None:
-    assert period_end_year({"status": "current"}, 2026) == 2026
 
 
 def test_period_end_year_returns_none_without_any_signal() -> None:
@@ -138,3 +137,7 @@ def test_decode_schema_normalizes_keys_and_values() -> None:
     assert decode_schema('{"Tech-Stack": ["Java", " Maven "]}') == {
         "tech_stack": ["java", "maven"]
     }
+
+
+def test_current_year_returns_the_calendar_year() -> None:
+    assert current_year() == datetime.now(UTC).year

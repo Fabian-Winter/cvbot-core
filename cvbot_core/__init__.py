@@ -6,6 +6,7 @@ from .embeddings import build_bedrock_embeddings
 from .env import read_bool, read_csv, read_float, read_int, read_path, read_str
 from .logging_config import LOG_FORMAT, VALID_LOG_LEVELS, configure_logging
 from .metadata import (
+    IS_CURRENT_KEY,
     MAX_SCHEMA_FIELDS,
     MAX_VALUE_LENGTH,
     MAX_VALUES_PER_FIELD,
@@ -13,7 +14,7 @@ from .metadata import (
     PERIOD_END_KEY,
     PERIOD_START_KEY,
     RESERVED_METADATA_KEYS,
-    STATUS_KEY,
+    current_year,
     decode_schema,
     encode_schema,
     normalize_key,
@@ -40,6 +41,7 @@ from .vector_store import create_chroma_client
 
 __all__ = [
     "ENCODING_NAME",
+    "IS_CURRENT_KEY",
     "LOG_FORMAT",
     "MAX_SCHEMA_FIELDS",
     "MAX_VALUES_PER_FIELD",
@@ -48,7 +50,6 @@ __all__ = [
     "PERIOD_END_KEY",
     "PERIOD_START_KEY",
     "RESERVED_METADATA_KEYS",
-    "STATUS_KEY",
     "VALID_LOG_LEVELS",
     "EmbeddingModel",
     "VectorStoreReader",
@@ -58,6 +59,7 @@ __all__ = [
     "configure_logging",
     "count_tokens",
     "create_chroma_client",
+    "current_year",
     "decode_schema",
     "encode_schema",
     "get_encoding",

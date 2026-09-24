@@ -13,6 +13,7 @@ import logging
 import re
 from collections.abc import Mapping, Sequence
 from typing import Any
+from datetime import UTC, datetime
 
 LOGGER = logging.getLogger(__name__)
 
@@ -22,17 +23,23 @@ RESERVED_METADATA_KEYS = frozenset(
     {"source", "filename", "chunk_index", "h1", "h2", "h3"}
 )
 
-# Period fields written by the documents and the coarse recency marker.
-# Both sides read and write them, so their spelling lives here.
+# Period fields written by the documents. Both sides read them, so their
+# spelling lives here.
 PERIOD_START_KEY = "startdate"
 PERIOD_END_KEY = "enddate"
-STATUS_KEY = "status"
+
+# The coarse "still running today" marker, derived from the period by
+# cvbot-embedder and readable as a filter field by cvbot-retriever. Stored as
+# the strings "true"/"false" so it survives the schema and the boost, which
+# both only consider string values.
+IS_CURRENT_KEY = "iscurrent"
 
 # Values of ``enddate`` that mean "still running" rather than a concrete end date.
 OPEN_PERIOD_MARKERS = frozenset(
     {
         "",
         "-",
+        "null",
         "laufend",
         "heute",
         "jetzt",
@@ -118,12 +125,11 @@ def period_end_year(
 ) -> int | None:
     """Determines the last year a chunk speaks about, or ``None``.
 
-    Single source of truth for the period semantics of ``startdate``/``enddate``/
-    ``status``: cvbot-embedder derives the published ``years`` lists from it,
-    cvbot-retriever rates recency with it, so both sides always agree on when
-    a period ends. An open-ended ``enddate`` (``now``, ``laufend``, absent) reaches
-    into the present, a concrete one ends at its year, and an open ``status``
-    marks the undated sections as up to date.
+    Single source of truth for the period semantics of ``startdate``/``enddate``:
+    cvbot-embedder derives the published ``years`` lists from it, cvbot-retriever
+    rates recency with it, so both sides always agree on when a period ends. An
+    open-ended ``enddate`` (``now``, ``laufend``, absent) reaches into the
+    present, a concrete one ends at its year.
 
     Args:
         metadata: The metadata of the chunk.
@@ -149,10 +155,6 @@ def period_end_year(
     if start is not None:
         # Unparsable end: conservative, a single-year period.
         return start
-
-    status = metadata.get(STATUS_KEY)
-    if isinstance(status, str) and normalize_value(status) in OPEN_PERIOD_MARKERS:
-        return now_year
     return None
 
 
@@ -227,3 +229,8 @@ def decode_schema(raw: str | None) -> dict[str, list[str]]:
             normalize_value(str(value)) for value in values if str(value).strip()
         ]
     return schema
+
+
+def current_year() -> int:
+    """Returns the current year; separated out so tests can pin it."""
+    return datetime.now(UTC).year
