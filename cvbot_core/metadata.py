@@ -54,8 +54,11 @@ OPEN_PERIOD_MARKERS = frozenset(
 _PERIOD_YEAR = re.compile(r"\b(\d{4})\b")
 
 # Chroma collection metadata has to stay small, and the schema is injected into
-# a prompt, so both the field count and the value lists are capped.
-MAX_SCHEMA_FIELDS = 30
+# a prompt, so both the field count and the value lists are capped. The field
+# count additionally respects the structured-output limit of the answer model:
+# Anthropic rejects schemas with more than 24 optional parameters, and every
+# filter field becomes one optional property of the condensation schema.
+MAX_SCHEMA_FIELDS = 24
 MAX_VALUES_PER_FIELD = 50
 MAX_VALUE_LENGTH = 80
 
