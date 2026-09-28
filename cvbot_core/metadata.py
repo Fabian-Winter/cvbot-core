@@ -58,7 +58,7 @@ _PERIOD_YEAR = re.compile(r"\b(\d{4})\b")
 # count additionally respects the structured-output limit of the answer model:
 # Anthropic rejects schemas with more than 24 optional parameters, and every
 # filter field becomes one optional property of the condensation schema.
-MAX_SCHEMA_FIELDS = 24
+MAX_SCHEMA_FIELDS = 15
 MAX_VALUES_PER_FIELD = 50
 MAX_VALUE_LENGTH = 80
 
