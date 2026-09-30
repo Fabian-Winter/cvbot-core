@@ -1,0 +1,24 @@
+@startuml
+left to right direction
+
+actor "Visitor" as user
+component "cvbot-retriever\n(FastAPI + RAG)" as retriever
+component "cvbot-embedder\n(ingestion pipeline)" as embedder
+component "cvbot-infra\n(Terraform infra)" as infra
+component "Markdown CV\ndocuments" as docs
+database "ChromaDB\n(ECS Fargate)" as chroma
+component "cvbot-core\n(shared library)" as core
+cloud "AWS Bedrock\n(embeddings + LLM)" as bedrock
+
+docs --> embedder : load & chunk
+embedder --> chroma : write chunks\n+ schema
+chroma --> retriever : read chunks\n+ filters
+user --> retriever : questions
+embedder ..> bedrock
+retriever ..> bedrock
+infra ..> bedrock : provides
+infra ..> chroma : provides
+infra ..> docs : hosts
+core ..> embedder : pinned dependency
+core ..> retriever : pinned dependency
+@enduml

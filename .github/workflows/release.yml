@@ -1,9 +1,14 @@
-# Verifies the test suite and cuts a release tag for the consuming repositories.
+# Verifies the test suite, renders the PlantUML diagrams and cuts a release tag
+# for the consuming repositories.
 #
 # Trigger   push to main.
-# Result    on a green suite, the patch level of the latest v* tag is bumped and
-#           the new tag is pushed. cvbot-embedder and cvbot-retriever pin that
-#           exact tag in their requirements.txt.
+# Result    on a green suite the diagrams under docs/ are rendered with PlantUML
+#           and committed back to main; the tag job then bumps the patch level of
+#           the latest v* tag and tags that diagram commit. cvbot-embedder and
+#           cvbot-retriever pin that exact tag in their requirements.txt.
+#
+# The jobs never hand values to each other: every job checks out the branch head
+# itself, so the tag always points at the commit carrying the rendered diagrams.
 #
 # A commit that is already tagged is skipped, so re-runs never create duplicates.
 name: Test and release
@@ -11,6 +16,11 @@ name: Test and release
 on:
   push:
     branches: [main]
+    paths: [
+      "cvbot_core/**",
+      "docs/*.puml",
+      ".github/workflows/**"
+    ]
 
 # Tags are derived from the latest existing one, so runs must not overlap.
 concurrency:
@@ -50,9 +60,60 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           exit $exit_code
 
+  render-diagrams:
+    name: Render PlantUML diagrams
+    needs: python-tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Generate App Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ github.ref_name }}
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Install PlantUML
+        run: |
+          set -euo pipefail
+          url=$(curl -fsSL https://api.github.com/repos/plantuml/plantuml/releases/latest \
+            | jq -r '[.assets[] | select(.name | test("^plantuml-[0-9]+\\.jar$"))][0].browser_download_url')
+          if [ -z "$url" ] || [ "$url" = "null" ]; then
+            echo 'no plantuml jar asset found in the latest release' >&2
+            exit 1
+          fi
+          curl -fsSL -o plantuml.jar "$url"
+
+      - name: Render docs/*.puml to PNG
+        run: |
+          set -euo pipefail
+          java -jar plantuml.jar -tpng -o . docs/*.puml
+
+      - name: Commit and push the diagrams
+        run: |
+          set -euo pipefail
+          git config user.name "repo-push-bot"
+          git config user.email "repo-push-bot@users.noreply.github.com"
+          if git diff --quiet -- docs && [ -z "$(git ls-files --others --exclude-standard -- docs)" ]; then
+            echo 'diagrams unchanged' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git add -- docs
+          git commit -m "docs: render PlantUML"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+          echo 'rendered diagrams pushed' >> "$GITHUB_STEP_SUMMARY"
+
   tag:
     name: Create release tag
-    needs: python-tests
+    needs: [python-tests, render-diagrams]
     runs-on: ubuntu-latest
     permissions:
       contents: write
