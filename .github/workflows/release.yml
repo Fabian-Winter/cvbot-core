@@ -84,6 +84,9 @@ jobs:
       - name: Install PlantUML
         run: |
           set -euxo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq graphviz
+          dot -V
           curl -fL -o plantuml.jar https://github.com/plantuml/plantuml/releases/download/v1.2026.8/plantuml-1.2026.8.jar
           file plantuml.jar
           java -version
