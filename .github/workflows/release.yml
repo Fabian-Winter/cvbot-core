@@ -84,13 +84,7 @@ jobs:
       - name: Install PlantUML
         run: |
           set -euo pipefail
-          url=$(curl -fsSL https://api.github.com/repos/plantuml/plantuml/releases/latest \
-            | jq -r '[.assets[] | select(.name | test("^plantuml-[0-9]+\\.jar$"))][0].browser_download_url')
-          if [ -z "$url" ] || [ "$url" = "null" ]; then
-            echo 'no plantuml jar asset found in the latest release' >&2
-            exit 1
-          fi
-          curl -fsSL -o plantuml.jar "$url"
+          curl -fsSL -o plantuml.jar https://github.com/plantuml/plantuml/releases/download/v1.2026.8/plantuml-1.2026.8.jar
 
       - name: Render docs/*.puml to PNG
         run: |
